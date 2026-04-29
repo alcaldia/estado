@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estado de su Solicitud — Alcaldía de Caucasia</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;min-height:100vh;padding:24px 16px 48px}
+
+    .header{
+      max-width:600px;margin:0 auto 28px;
+      background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#1d4ed8 100%);
+      border-radius:16px;padding:28px 28px 24px;color:white;text-align:center;
+    }
+    .header-logo{width:64px;height:64px;background:rgba(255,255,255,0.12);border-radius:16px;
+      display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px}
+    .header h1{font-size:20px;font-weight:800;letter-spacing:.5px}
+    .header p{font-size:13px;color:#bfdbfe;margin-top:4px}
+
+    .card{max-width:600px;margin:0 auto 20px;background:white;border-radius:14px;
+      padding:24px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0}
+
+    .input-group{display:flex;gap:10px;margin-bottom:12px}
+    .search-input{
+      flex:1;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;
+      font-size:16px;font-weight:600;outline:none;transition:all .2s;font-family:inherit;
+      letter-spacing:.5px;
+    }
+    .search-input:focus{border-color:#1d4ed8;background:#eff6ff;box-shadow:0 0 0 3px #dbeafe}
+    .btn-search{
+      padding:13px 22px;background:#1d4ed8;color:white;border:none;border-radius:10px;
+      font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;
+      white-space:nowrap;
+    }
+    .btn-search:hover{background:#1e40af}
+    .btn-search:active{transform:scale(.97)}
+    .btn-search:disabled{opacity:.6}
+
+
+
+    /* Estado result */
+    .result{max-width:600px;margin:0 auto;display:none}
+    .result.visible{display:block}
+
+    .status-card{
+      background:white;border-radius:14px;overflow:hidden;
+      box-shadow:0 4px 24px rgba(0,0,0,.10);border:1px solid #e2e8f0;
+    }
+    .status-header{padding:20px 24px;color:white;position:relative}
+    .status-icon{font-size:36px;margin-bottom:8px}
+    .status-title{font-size:20px;font-weight:800}
+    .status-sub{font-size:13px;opacity:.85;margin-top:3px}
+    .status-badge{
+      position:absolute;top:20px;right:20px;
+      background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
+      border-radius:20px;padding:4px 14px;font-size:11px;font-weight:800;letter-spacing:.5px;
+    }
+
+    .info-body{padding:20px 24px}
+    .info-row{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      padding:10px 0;border-bottom:1px solid #f1f5f9;gap:12px;font-size:14px;
+    }
+    .info-row:last-child{border-bottom:none}
+    .info-lbl{color:#64748b;font-weight:600;flex-shrink:0}
+    .info-val{font-weight:700;color:#0f172a;text-align:right}
+
+    /* Timeline */
+    .timeline{padding:0 24px 24px}
+    .tl-title{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+    .tl-item{display:flex;gap:14px;margin-bottom:4px}
+    .tl-left{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+    .tl-dot{
+      width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:13px;flex-shrink:0;border:2px solid transparent;
+    }
+    .tl-dot.done{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+    .tl-dot.active{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;animation:pulse 2s infinite}
+    .tl-dot.pending{background:#f8fafc;border-color:#e2e8f0;color:#cbd5e1}
+    .tl-dot.error{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
+    .tl-line{width:2px;flex:1;min-height:16px;margin:2px 0}
+    .tl-line.done{background:#6ee7b7}
+    .tl-line.pending{background:#e2e8f0}
+    .tl-content{padding-bottom:18px;flex:1}
+    .tl-step-title{font-size:14px;font-weight:700;color:#0f172a}
+    .tl-step-sub{font-size:12px;color:#64748b;margin-top:3px;line-height:1.4}
+    .tl-step-date{font-size:11px;color:#94a3b8;margin-top:4px;font-weight:600}
+
+    /* Alert box */
+    .alert-box{
+      margin:0 24px 20px;padding:14px 16px;border-radius:10px;
+      display:flex;gap:12px;align-items:flex-start;font-size:13px;
+    }
+    .alert-box.info{background:#eff6ff;border:1px solid #bfdbfe}
+    .alert-box.warn{background:#fffbeb;border:1px solid #fde68a}
+    .alert-box.ok{background:#ecfdf5;border:1px solid #a7f3d0}
+    .alert-box.err{background:#fef2f2;border:1px solid #fecaca}
+    .alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+    .alert-title{font-weight:700;margin-bottom:2px}
+    .alert-msg{color:#475569;line-height:1.4}
+
+    /* Not found */
+    .not-found{
+      max-width:600px;margin:0 auto;background:white;border-radius:14px;
+      padding:40px 24px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.07);
+      display:none;
+    }
+    .not-found.visible{display:block}
+    .not-found-icon{font-size:48px;margin-bottom:16px;opacity:.4}
+    .not-found h3{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px}
+    .not-found p{font-size:14px;color:#64748b}
+
+    /* Loading */
+    .loading{max-width:600px;margin:0 auto;text-align:center;padding:40px;display:none}
+    .loading.visible{display:block}
+    .spinner{width:36px;height:36px;border:4px solid #e2e8f0;border-top-color:#1d4ed8;
+      border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4)}50%{box-shadow:0 0 0 6px rgba(59,130,246,0)}}
+
+    .footer{max-width:600px;margin:24px auto 0;text-align:center;font-size:11px;color:#94a3b8}
+    .footer a{color:#3b82f6;text-decoration:none}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🏛️</div>
+  <h1>ALCALDÍA DE CAUCASIA</h1>
+  <p>Consulta el estado de su solicitud de certificado de estratificación</p>
+</div>
+
+<div class="card">
+  <div class="input-group">
+    <input
+      type="text" id="search-input" class="search-input"
+      placeholder="Número de radicado o cédula..."
+      autocomplete="off" spellcheck="false"
+    >
+    <button class="btn-search" id="btn-buscar" onclick="buscar()">
+      🔍 Consultar
+    </button>
+  </div>
+  <div style="font-size:12px;color:#94a3b8;text-align:center">
+    Puede buscar por número de radicado o por cédula/NIT — el sistema detecta automáticamente.
+  </div>
+</div>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:14px;font-weight:600;color:#64748b">Consultando la base de datos...</div>
+</div>
+
+<div class="not-found" id="not-found">
+  <div class="not-found-icon">🔍</div>
+  <h3>No se encontró ninguna solicitud</h3>
+  <p id="not-found-msg">Verifique el número ingresado e intente nuevamente.</p>
+</div>
+
+<div class="result" id="result"></div>
+
+<div class="footer">
+  Alcaldía Municipal de Caucasia — Secretaría de Infraestructura y Valorización<br>
+  ¿Problemas? Contáctenos en <a href="tel:6048149140">(604) 814-9140 Ext. 118</a>
+</div>
+
+<script>
+  // ══ CONFIGURACIÓN — mismo patrón que index_TEST_v2.html ══
+  const PROJECT_ID      = "prueba-e42fa";
+  const COLLECTION_FULL = "artifacts/prueba-e42fa/public/data/radicados";
+
+  // Descomponer el path igual que en el validador que funciona:
+  // parent = todo menos el último segmento  → "artifacts/.../data"
+  // collectionId = último segmento          → "radicados"
+  const pathParts     = COLLECTION_FULL.split("/");
+  const COLLECTION_ID = pathParts[pathParts.length - 1];
+  const PARENT_PATH   = pathParts.slice(0, -1).join("/");
+
+  const BASE      = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+  const QUERY_URL = `${BASE}/${PARENT_PATH}:runQuery`;
+
+  // ── Helpers ──────────────────────────────────────
+  function show(id) { document.getElementById(id).classList.add('visible'); }
+  function hide(id) { document.getElementById(id).classList.remove('visible'); }
+  function setTab() {}
+
+  function fv(field, fallback = '—') {
+    if (!field) return fallback;
+    return field.stringValue ?? field.integerValue ?? field.doubleValue
+        ?? (field.booleanValue !== undefined ? String(field.booleanValue) : null)
+        ?? fallback;
+  }
+
+  // ── Query Firestore ──────────────────────────────
+  async function queryField(fieldPath, value) {
+    const body = {
+      structuredQuery: {
+        from: [{ collectionId: COLLECTION_ID, allDescendants: false }],
+        where: { fieldFilter: {
+          field: { fieldPath },
+          op: 'EQUAL',
+          value: { stringValue: value }
+        }},
+        limit: 5
+      }
+    };
+
+    const resp = await fetch(QUERY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const text = await resp.text();
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${text.substring(0,100)}`);
+    const data = JSON.parse(text);
+    return Array.isArray(data) ? data.filter(d => d.document) : [];
+  }
+
+  // ── Buscar ───────────────────────────────────────
+  async function buscar() {
+    const q = document.getElementById('search-input').value.trim().replace(/\s+/g, '');
+    if (!q) return;
+
+    hide('result'); hide('not-found');
+    show('loading');
+    document.getElementById('btn-buscar').disabled = true;
+
+    try {
+      const qSinPuntos = q.replace(/\./g, '');
+
+      // Buscar en paralelo: por radicado Y por cédula
+      const promises = [
+        queryField('numero_radicado', q),
+        queryField('cedula', q),
+      ];
+      if (qSinPuntos !== q) {
+        promises.push(queryField('cedula', qSinPuntos));
+      }
+
+      const results  = await Promise.all(promises);
+      const seenIds  = new Set();
+      const allDocs  = [];
+      results.flat().forEach(d => {
+        if (!seenIds.has(d.document.name)) {
+          seenIds.add(d.document.name);
+          allDocs.push(d);
+        }
+      });
+
+      hide('loading');
+      document.getElementById('btn-buscar').disabled = false;
+
+      if (!allDocs.length) {
+        document.getElementById('not-found-msg').textContent =
+          `No se encontró ninguna solicitud con "${q}". Verifique e intente de nuevo.`;
+        show('not-found');
+        return;
+      }
+
+      renderResults(allDocs);
+      show('result');
+
+    } catch (err) {
+      hide('loading');
+      document.getElementById('btn-buscar').disabled = false;
+      document.getElementById('not-found-msg').textContent =
+        'Error: ' + err.message;
+      show('not-found');
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────
+  window.addEventListener('load', () => {
+    document.getElementById('search-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') buscar();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('r') || params.get('rad') || params.get('c') || params.get('ced');
+    if (q) {
+      document.getElementById('search-input').value = q;
+      setTimeout(buscar, 400);
+    }
+  });
+
+  function fv(field, fallback = '—') {
+    if (!field) return fallback;
+    return field.stringValue ?? field.integerValue ?? field.booleanValue?.toString() ?? fallback;
+  }
+
+  // Configuración de estados — mensajes para el ciudadano
+  const ESTADOS = {
+    'PENDIENTE': {
+      color:  'linear-gradient(135deg, #374151, #4b5563)',
+      icon:   '📥', badge: 'RECIBIDA',
+      title:  'Solicitud Recibida',
+      sub:    'Su solicitud ha sido recibida y está en lista de espera.',
+      alert:  { type: 'info', icon: 'ℹ️', title: 'En espera de asignación',
+                msg:  'Su solicitud fue radicada correctamente. Pronto se asignará un inspector para realizar la visita al predio.' }
+    },
+    'EN_VISITA': {
+      color:  'linear-gradient(135deg, #5b21b6, #7c3aed)',
+      icon:   '🏠', badge: 'EN PROCESO',
+      title:  'Visita Programada',
+      sub:    'Un inspector está asignado para visitar su predio.',
+      alert:  { type: 'info', icon: '🏠', title: 'Inspector asignado',
+                msg:  'Se ha asignado un inspector para visitar su predio. Por favor asegúrese de que haya alguien disponible para recibir la visita.' }
+    },
+    'VISITA_REALIZADA': {
+      color:  'linear-gradient(135deg, #0369a1, #0284c7)',
+      icon:   '✅', badge: 'VISITADO',
+      title:  'Visita Realizada — En Cola de Elaboración',
+      sub:    'La visita fue completada. El certificado está pendiente de elaboración.',
+      alert:  { type: 'info', icon: '⏳', title: 'Esperando elaboración del certificado',
+                msg:  'El inspector realizó la visita a su predio. Su certificado está en la cola de elaboración. El funcionario de la Secretaría lo elaborará en los próximos días hábiles.' }
+    },
+    'EN_ELABORACION': {
+      color:  'linear-gradient(135deg, #1e40af, #2563eb)',
+      icon:   '📝', badge: 'ELABORANDO',
+      title:  'Certificado en Elaboración',
+      sub:    'El funcionario está elaborando su certificado de estratificación.',
+      alert:  { type: 'info', icon: '📝', title: 'Certificado siendo elaborado',
+                msg:  'El funcionario de la Secretaría de Infraestructura está elaborando su certificado. Una vez listo, pasará a firma del Secretario.' }
+    },
+    'PENDIENTE_FIRMA': {
+      color:  'linear-gradient(135deg, #b45309, #d97706)',
+      icon:   '✍️', badge: 'PEND. FIRMA',
+      title:  'Pendiente de Firma del Secretario',
+      sub:    'El certificado fue elaborado y está esperando la firma del Secretario.',
+      alert:  { type: 'warn', icon: '✍️', title: 'Esperando firma del Secretario',
+                msg:  'Su certificado ya fue elaborado y está en manos del Secretario de Infraestructura Municipal para su revisión y firma. Este paso puede tomar 1 a 2 días hábiles.' }
+    },
+    'RESUELTO': {
+      color:  'linear-gradient(135deg, #065f46, #059669)',
+      icon:   '🎉', badge: 'LISTO',
+      title:  '¡Certificado Firmado y Listo!',
+      sub:    'Su certificado está firmado por el Secretario y disponible para retirar.',
+      alert:  { type: 'ok', icon: '🎉', title: '¡Su certificado está listo!',
+                msg:  'El certificado de estratificación fue firmado por el Secretario de Infraestructura y está disponible. Puede acercarse a las oficinas a retirarlo o esperar la notificación de entrega.' }
+    },
+    'PENDIENTE_DOC': {
+      color:  'linear-gradient(135deg, #92400e, #b45309)',
+      icon:   '📋', badge: 'DOCUMENTOS',
+      title:  'Documentos Pendientes',
+      sub:    'El inspector reportó que faltan documentos o información.',
+      alert:  { type: 'warn', icon: '⚠️', title: 'Se requieren documentos adicionales',
+                msg:  'Durante la visita se identificó que faltan documentos o información. Por favor comuníquese con la Secretaría de Infraestructura para saber qué se requiere.' }
+    },
+    'INCOMPLETO': {
+      color:  'linear-gradient(135deg, #7f1d1d, #991b1b)',
+      icon:   '❌', badge: 'CERRADO',
+      title:  'Solicitud Cerrada — Sin Contacto',
+      sub:    'No fue posible realizar la visita después de 3 intentos.',
+      alert:  { type: 'err', icon: '❌', title: 'No se pudo realizar la visita',
+                msg:  'El inspector intentó contactarle en 3 ocasiones sin éxito. La solicitud fue cerrada. Si desea continuar con el trámite, debe radicarlo nuevamente en la Secretaría de Infraestructura.' }
+    },
+    'CANCELADO_USUARIO': {
+      color:  'linear-gradient(135deg, #7c2d12, #ea580c)',
+      icon:   '🚫', badge: 'CANCELADO',
+      title:  'Solicitud Cancelada',
+      sub:    'La solicitud fue cancelada.',
+      alert:  { type: 'err', icon: '🚫', title: 'Solicitud cancelada',
+                msg:  'Esta solicitud fue cancelada. Si necesita el certificado, por favor acérquese a las oficinas de la Secretaría de Infraestructura para radicar una nueva solicitud.' }
+    },
+  };
+
+  // Pasos del proceso (timeline) — 6 pasos separados
+  function getTimeline(estado, rad) {
+    const steps = [
+      { key: 'PENDIENTE',        icon: '📥', label: 'Solicitud Recibida',
+        desc: 'Radicado en ventanilla única',                              dateField: 'fecha_registro' },
+      { key: 'EN_VISITA',        icon: '🏠', label: 'Visita Asignada',
+        desc: 'Inspector asignado para visitar el predio',                 dateField: 'fecha_asignacion_visita' },
+      { key: 'VISITA_REALIZADA', icon: '📸', label: 'Visita Realizada',
+        desc: 'Inspector visitó el predio y registró evidencias',          dateField: 'fecha_visita_real' },
+      { key: 'EN_ELABORACION',   icon: '📝', label: 'Elaboración del Certificado',
+        desc: 'El funcionario elabora el certificado de estratificación',  dateField: 'fecha_elaboracion' },
+      { key: 'PENDIENTE_FIRMA',  icon: '✍️', label: 'Firma del Secretario',
+        desc: 'El Secretario de Infraestructura revisa y firma',           dateField: null },
+      { key: 'RESUELTO',         icon: '🎉', label: 'Certificado Entregado',
+        desc: 'Certificado firmado y disponible para retirar',             dateField: 'fecha_entrega_certificado' },
+    ];
+
+    const order = ['PENDIENTE','EN_VISITA','VISITA_REALIZADA','EN_ELABORACION','PENDIENTE_FIRMA','RESUELTO'];
+    const errorStates = ['PENDIENTE_DOC','INCOMPLETO','CANCELADO_USUARIO'];
+
+    let mappedEstado = estado;
+    if (errorStates.includes(estado)) mappedEstado = 'VISITA_REALIZADA';
+
+    const currentIdx = order.indexOf(mappedEstado);
+
+    return steps.map((s, i) => {
+      let dotClass, lineClass;
+      if (i < currentIdx)        { dotClass = 'done';   lineClass = 'done'; }
+      else if (i === currentIdx) { dotClass = errorStates.includes(estado) ? 'error' : 'active'; lineClass = 'pending'; }
+      else                       { dotClass = 'pending'; lineClass = 'pending'; }
+
+      const dateVal = s.dateField ? (rad[s.dateField] || '') : '';
+      const dateStr = dateVal ? `<div class="tl-step-date">📅 ${dateVal.toString().substring(0,16).replace('T',' ')}</div>` : '';
+      const isLast  = i === steps.length - 1;
+
+      return `
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot ${dotClass}">${s.icon}</div>
+            ${!isLast ? `<div class="tl-line ${lineClass}"></div>` : ''}
+          </div>
+          <div class="tl-content">
+            <div class="tl-step-title" style="${dotClass==='active'?'color:#1d4ed8;font-size:15px':''}">${s.label}</div>
+            <div class="tl-step-sub">${s.desc}</div>
+            ${dateStr}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderSingleResult(fields) {
+    const estado   = fv(fields.estado, 'PENDIENTE');
+    const cfg      = ESTADOS[estado] || ESTADOS['PENDIENTE'];
+
+    const nombre   = fv(fields.remitente);
+    const cedula   = fv(fields.cedula);
+    const direccion= fv(fields.direccion);
+    const radicado = fv(fields.numero_radicado);
+    const barrio   = fv(fields.barrio);
+    const f_reg    = fv(fields.fecha_radicacion_fisica || fields.fecha_registro, '')?.substring(0,10);
+    const f_asig   = fv(fields.fecha_asignacion_visita, '')?.substring(0,16)?.replace('T',' ');
+    const f_visita = fv(fields.fecha_visita_real, '')?.substring(0,16)?.replace('T',' ');
+    const visitador= fv(fields.visita_asignada_a);
+    const notas    = fv(fields.notas_visita);
+
+    const radObj = {};
+    Object.entries(fields).forEach(([k,v]) => { radObj[k] = fv(v); });
+
+    return `
+      <div class="status-card">
+        <div class="status-header" style="background:${cfg.color}">
+          <div class="status-badge">${cfg.badge}</div>
+          <div class="status-icon">${cfg.icon}</div>
+          <div class="status-title">${cfg.title}</div>
+          <div class="status-sub">${cfg.sub}</div>
+        </div>
+
+        <div class="info-body">
+          <div class="info-row"><span class="info-lbl">Radicado</span><span class="info-val" style="font-family:monospace">${radicado}</span></div>
+          <div class="info-row"><span class="info-lbl">Solicitante</span><span class="info-val">${nombre}</span></div>
+          ${cedula !== '—' ? `<div class="info-row"><span class="info-lbl">Documento</span><span class="info-val">${cedula}</span></div>` : ''}
+          <div class="info-row"><span class="info-lbl">Dirección del predio</span><span class="info-val">${direccion}${barrio !== '—' ? ', '+barrio : ''}</span></div>
+          ${f_reg ? `<div class="info-row"><span class="info-lbl">Fecha de radicación</span><span class="info-val">${f_reg}</span></div>` : ''}
+          ${f_asig && f_asig !== '—' ? `<div class="info-row"><span class="info-lbl">Visita asignada</span><span class="info-val">${f_asig}</span></div>` : ''}
+          ${f_visita && f_visita !== '—' ? `<div class="info-row"><span class="info-lbl">Visita realizada</span><span class="info-val" style="color:#0369a1;font-weight:800">${f_visita}</span></div>` : ''}
+          ${visitador !== '—' && estado !== 'PENDIENTE' ? `<div class="info-row"><span class="info-lbl">Inspector asignado</span><span class="info-val">${visitador}</span></div>` : ''}
+          ${notas && notas !== '—' && !notas.startsWith('PENDIENTE:') ? `<div class="info-row"><span class="info-lbl">Observación</span><span class="info-val" style="font-size:13px">${notas}</span></div>` : ''}
+        </div>
+
+        <div class="alert-box ${cfg.alert.type}">
+          <span class="alert-icon">${cfg.alert.icon}</span>
+          <div>
+            <div class="alert-title" style="color:${cfg.alert.type==='ok'?'#065f46':cfg.alert.type==='warn'?'#92400e':cfg.alert.type==='err'?'#991b1b':'#1e3a8a'}">${cfg.alert.title}</div>
+            <div class="alert-msg">${cfg.alert.msg}</div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="tl-title">Progreso de su solicitud</div>
+          ${getTimeline(estado, radObj)}
+        </div>
+      </div>`;
+  }
+
+  function renderResults(docs) {
+    const container = document.getElementById('result');
+    if (docs.length === 1) {
+      container.innerHTML = renderSingleResult(docs[0].document.fields);
+    } else {
+      // Múltiples resultados (búsqueda por cédula)
+      container.innerHTML = `
+        <div style="max-width:600px;margin:0 auto 12px;font-size:14px;font-weight:600;color:#64748b">
+          Se encontraron ${docs.length} solicitudes para esta cédula:
+        </div>
+        ${docs.map(d => `
+          <div style="max-width:600px;margin:0 auto 16px">
+            ${renderSingleResult(d.document.fields)}
+          </div>`
+        ).join('')}`;
+    }
+  }
+</script>
+</body>
+</html>
