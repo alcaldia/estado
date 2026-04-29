@@ -21,16 +21,16 @@
     .card{max-width:600px;margin:0 auto 20px;background:white;border-radius:14px;
       padding:24px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0}
 
-    .input-group{display:flex;gap:10px;margin-bottom:12px}
+    .input-group{display:flex;gap:10px;margin-bottom:12px;flex-wrap:nowrap;align-items:stretch}
     .search-input{
-      flex:1;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;
-      font-size:16px;font-weight:600;outline:none;transition:all .2s;font-family:inherit;
+      flex:1;min-width:0;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;
+      font-size:15px;font-weight:600;outline:none;transition:all .2s;font-family:inherit;
       letter-spacing:.5px;
     }
     .search-input:focus{border-color:#1d4ed8;background:#eff6ff;box-shadow:0 0 0 3px #dbeafe}
     .btn-search{
-      padding:13px 22px;background:#1d4ed8;color:white;border:none;border-radius:10px;
-      font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;
+      flex-shrink:0;padding:13px 18px;background:#1d4ed8;color:white;border:none;border-radius:10px;
+      font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;
       white-space:nowrap;
     }
     .btn-search:hover{background:#1e40af}
